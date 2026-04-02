@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/property-data-standards-co/pdtf-tir/schema/registry.schema.json",
+  "title": "PDTF Trusted Issuer Registry",
+  "description": "Schema for the PDTF Trusted Issuer Registry, defining credential issuers and user account providers within the Property Data Trust Framework.",
+  "type": "object",
+  "required": ["$schema", "version", "lastUpdated", "issuers"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for this registry file."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the registry."
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the last registry update."
+    },
+    "issuers": {
+      "type": "object",
+      "description": "Map of issuer slug to issuer entry.",
+      "additionalProperties": {
+        "$ref": "#/$defs/issuerEntry"
+      },
+      "minProperties": 1
+    },
+    "userAccountProviders": {
+      "type": "object",
+      "description": "Map of provider slug to user account provider entry.",
+      "additionalProperties": {
+        "$ref": "#/$defs/userAccountProviderEntry"
+      }
+    }
+  },
+  "$defs": {
+    "issuerEntry": {
+      "type": "object",
+      "description": "A credential issuer or trusted proxy in the PDTF ecosystem.",
+      "required": ["slug", "did", "name", "trustLevel", "status", "authorisedPaths"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+          "description": "Unique URL-safe identifier for the issuer. Must match the object key."
+        },
+        "did": {
+          "type": "string",
+          "pattern": "^did:[a-z]+:.+$",
+          "description": "Decentralised Identifier for this issuer."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable name of the issuer."
+        },
+        "trustLevel": {
+          "type": "string",
+          "enum": ["rootIssuer", "trustedProxy", "selfAttested"],
+          "description": "Trust level: rootIssuer (primary source), trustedProxy (authorised intermediary), selfAttested (unverified)."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "planned", "suspended", "revoked"],
+          "description": "Current operational status of the issuer."
+        },
+        "proxyFor": {
+          "type": "string",
+          "description": "Slug of the root issuer this proxy acts on behalf of. Required for trustedProxy entries."
+        },
+        "authorisedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z]+:/.+$",
+            "description": "Entity:path pattern this issuer is authorised to issue credentials for."
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "PDTF entity:path patterns this issuer may credential."
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp from which this issuer entry is valid."
+        },
+        "validUntil": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp until which this issuer entry is valid."
+        },
+        "regulatoryRegistration": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the issuer's regulatory registration or authority page."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional longer description of the issuer."
+        }
+      }
+    },
+    "userAccountProviderEntry": {
+      "type": "object",
+      "description": "A provider that manages user/organisation accounts and identity verification.",
+      "required": ["slug", "did", "name", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+          "description": "Unique URL-safe identifier for the provider. Must match the object key."
+        },
+        "did": {
+          "type": "string",
+          "pattern": "^did:[a-z]+:.+$",
+          "description": "Decentralised Identifier for this provider."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable name of the provider."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "planned", "suspended", "revoked"],
+          "description": "Current operational status of the provider."
+        },
+        "managedOrganisations": {
+          "type": "string",
+          "description": "Description of how this provider manages organisation identity."
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp from which this provider entry is valid."
+        },
+        "validUntil": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp until which this provider entry is valid."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional longer description of the provider."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+name: Validate Registry
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ajv-cli and ajv-formats
+        run: npm install -g ajv-cli ajv-formats
+
+      - name: Validate registry.json against schema
+        run: ajv validate -s schema/registry.schema.json -d registry.json --spec=draft2020 -c ajv-formats
+
+      - name: Check for duplicate DIDs
+        run: |
+          node -e "
+            const reg = require('./registry.json');
+            const dids = [];
+            for (const v of Object.values(reg.issuers || {})) dids.push(v.did);
+            for (const v of Object.values(reg.userAccountProviders || {})) dids.push(v.did);
+            const dupes = dids.filter((d, i) => dids.indexOf(d) !== i);
+            if (dupes.length) { console.error('Duplicate DIDs:', dupes); process.exit(1); }
+            console.log('✅ No duplicate DIDs (' + dids.length + ' checked)');
+          "
+
+      - name: Check for duplicate slugs
+        run: |
+          node -e "
+            const reg = require('./registry.json');
+            const slugs = [];
+            for (const v of Object.values(reg.issuers || {})) slugs.push(v.slug);
+            for (const v of Object.values(reg.userAccountProviders || {})) slugs.push(v.slug);
+            const dupes = slugs.filter((s, i) => slugs.indexOf(s) !== i);
+            if (dupes.length) { console.error('Duplicate slugs:', dupes); process.exit(1); }
+            console.log('✅ No duplicate slugs (' + slugs.length + ' checked)');
+          "
+
+      - name: Check slug-key consistency
+        run: |
+          node -e "
+            const reg = require('./registry.json');
+            const errors = [];
+            for (const [k, v] of Object.entries(reg.issuers || {})) {
+              if (k !== v.slug) errors.push('Issuer key \"' + k + '\" != slug \"' + v.slug + '\"');
+            }
+            for (const [k, v] of Object.entries(reg.userAccountProviders || {})) {
+              if (k !== v.slug) errors.push('Provider key \"' + k + '\" != slug \"' + v.slug + '\"');
+            }
+            if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
+            console.log('✅ All keys match their slug fields');
+          "
+
+      - name: Generate REGISTRY.md
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: node scripts/generate-registry-md.mjs
+
+      - name: Commit REGISTRY.md if changed
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add REGISTRY.md
+          git diff --cached --quiet || git commit -m "chore: auto-generate REGISTRY.md" && git push

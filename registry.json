@@ -1,0 +1,81 @@
+{
+  "$schema": "./schema/registry.schema.json",
+  "version": "0.1.0",
+  "lastUpdated": "2026-04-02T00:00:00Z",
+  "issuers": {
+    "moverly-epc": {
+      "slug": "moverly-epc",
+      "did": "did:web:adapters.propdata.org.uk:epc",
+      "name": "Moverly EPC Adapter",
+      "trustLevel": "trustedProxy",
+      "status": "planned",
+      "proxyFor": "environment-agency",
+      "authorisedPaths": [
+        "Property:/energyEfficiency/*"
+      ],
+      "validFrom": "2026-06-01T00:00:00Z"
+    },
+    "moverly-title": {
+      "slug": "moverly-title",
+      "did": "did:web:adapters.propdata.org.uk:title",
+      "name": "Moverly Title Register Adapter",
+      "trustLevel": "trustedProxy",
+      "status": "planned",
+      "proxyFor": "hmlr",
+      "authorisedPaths": [
+        "Title:/registerExtract/*",
+        "Title:/planReference",
+        "Title:/classOfTitle"
+      ],
+      "validFrom": "2026-06-01T00:00:00Z"
+    },
+    "moverly-searches": {
+      "slug": "moverly-searches",
+      "did": "did:web:adapters.propdata.org.uk:searches",
+      "name": "Moverly Search Adapter",
+      "trustLevel": "trustedProxy",
+      "status": "planned",
+      "proxyFor": "multiple",
+      "authorisedPaths": [
+        "Property:/localAuthority/searches/*",
+        "Property:/floodRisk/*",
+        "Property:/environmentalRisk/*",
+        "Property:/miningRisk/*"
+      ],
+      "validFrom": "2026-06-01T00:00:00Z"
+    },
+    "environment-agency": {
+      "slug": "environment-agency",
+      "did": "did:web:credentials.environment-agency.gov.uk",
+      "name": "Environment Agency",
+      "trustLevel": "rootIssuer",
+      "status": "planned",
+      "authorisedPaths": [
+        "Property:/energyEfficiency/*",
+        "Property:/floodRisk/*"
+      ],
+      "regulatoryRegistration": "https://www.gov.uk/government/organisations/environment-agency"
+    },
+    "hmlr": {
+      "slug": "hmlr",
+      "did": "did:web:credentials.landregistry.gov.uk",
+      "name": "HM Land Registry",
+      "trustLevel": "rootIssuer",
+      "status": "planned",
+      "authorisedPaths": [
+        "Title:/*"
+      ],
+      "regulatoryRegistration": "https://www.gov.uk/government/organisations/land-registry"
+    }
+  },
+  "userAccountProviders": {
+    "moverly": {
+      "slug": "moverly",
+      "did": "did:web:auth.moverly.com",
+      "name": "Moverly",
+      "status": "active",
+      "managedOrganisations": "Verifies organisation identity via Companies House lookup and director authentication",
+      "validFrom": "2026-04-01T00:00:00Z"
+    }
+  }
+}

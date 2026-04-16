@@ -1,31 +1,86 @@
-# PDTF Federation Registry
+# PDTF Trusted Issuer Registry
 
-> **Auto-generated from `registry.json`.** Do not edit directly.
+> **Auto-generated from `registry.json`** — do not edit manually.
+>
+> Version: **0.1.0** | Last updated: **2026-04-02T00:00:00Z**
 
-This document lists all entities registered in the PDTF OpenID Federation Trust Anchor at `https://registry.propdata.org.uk`.
+## Credential Issuers
 
-Each entity receives:
-- A **Subordinate Entity Statement** (`/entities/{slug}.jwt`) — a signed JWT binding the entity's DID to its authorised PDTF paths
-- A **Trust Mark** (`/trust-marks/{slug}.jwt`) — portable proof of authorisation by the Trust Anchor
+| Name | DID | Trust Level | Status | Authorised Paths | Proxy For |
+|------|-----|-------------|--------|------------------|-----------|
+| **Moverly EPC Adapter** | `did:web:adapters.propdata.org.uk:epc` | 🔗 Trusted Proxy | 🔵 Planned | `Property:/energyEfficiency/*` | `environment-agency` |
+| **Moverly Title Register Adapter** | `did:web:adapters.propdata.org.uk:title` | 🔗 Trusted Proxy | 🔵 Planned | `Title:/registerExtract/*`, `Title:/planReference`, `Title:/classOfTitle` | `hmlr` |
+| **Moverly Search Adapter** | `did:web:adapters.propdata.org.uk:searches` | 🔗 Trusted Proxy | 🔵 Planned | `Property:/localAuthority/searches/*`, `Property:/floodRisk/*`, `Property:/environmentalRisk/*`, `Property:/miningRisk/*` | `multiple` |
+| **Environment Agency** | `did:web:credentials.environment-agency.gov.uk` | 🏛️ Root Issuer | 🔵 Planned | `Property:/energyEfficiency/*`, `Property:/floodRisk/*` | — |
+| **HM Land Registry** | `did:web:credentials.landregistry.gov.uk` | 🏛️ Root Issuer | 🔵 Planned | `Title:/*` | — |
 
----
+### Issuer Details
 
-## Issuers
+#### Moverly EPC Adapter
 
-| Slug | Name | DID | Trust Level | Status | Authorised Paths |
-|------|------|-----|-------------|--------|-----------------|
-| moverly-epc | Moverly EPC Adapter | `did:web:adapters.propdata.org.uk:epc` | trustedProxy | planned | `Property:/energyEfficiency/*` |
-| moverly-title | Moverly Title Register Adapter | `did:web:adapters.propdata.org.uk:title` | trustedProxy | planned | `Title:/registerExtract/*`, `Title:/planReference`, `Title:/classOfTitle` |
-| moverly-searches | Moverly Search Adapter | `did:web:adapters.propdata.org.uk:searches` | trustedProxy | planned | `Property:/localAuthority/searches/*`, `Property:/floodRisk/*`, `Property:/environmentalRisk/*`, `Property:/miningRisk/*` |
-| environment-agency | Environment Agency | `did:web:credentials.environment-agency.gov.uk` | rootIssuer | planned | `Property:/energyEfficiency/*`, `Property:/floodRisk/*` |
-| hmlr | HM Land Registry | `did:web:credentials.landregistry.gov.uk` | rootIssuer | planned | `Title:/*` |
+- **Slug:** `moverly-epc`
+- **DID:** `did:web:adapters.propdata.org.uk:epc`
+- **Trust Level:** 🔗 Trusted Proxy
+- **Status:** 🔵 Planned
+- **Proxy For:** `environment-agency`
+- **Authorised Paths:**
+  - `Property:/energyEfficiency/*`
+- **Valid From:** 2026-06-01T00:00:00Z
+
+#### Moverly Title Register Adapter
+
+- **Slug:** `moverly-title`
+- **DID:** `did:web:adapters.propdata.org.uk:title`
+- **Trust Level:** 🔗 Trusted Proxy
+- **Status:** 🔵 Planned
+- **Proxy For:** `hmlr`
+- **Authorised Paths:**
+  - `Title:/registerExtract/*`
+  - `Title:/planReference`
+  - `Title:/classOfTitle`
+- **Valid From:** 2026-06-01T00:00:00Z
+
+#### Moverly Search Adapter
+
+- **Slug:** `moverly-searches`
+- **DID:** `did:web:adapters.propdata.org.uk:searches`
+- **Trust Level:** 🔗 Trusted Proxy
+- **Status:** 🔵 Planned
+- **Proxy For:** `multiple`
+- **Authorised Paths:**
+  - `Property:/localAuthority/searches/*`
+  - `Property:/floodRisk/*`
+  - `Property:/environmentalRisk/*`
+  - `Property:/miningRisk/*`
+- **Valid From:** 2026-06-01T00:00:00Z
+
+#### Environment Agency
+
+- **Slug:** `environment-agency`
+- **DID:** `did:web:credentials.environment-agency.gov.uk`
+- **Trust Level:** 🏛️ Root Issuer
+- **Status:** 🔵 Planned
+- **Authorised Paths:**
+  - `Property:/energyEfficiency/*`
+  - `Property:/floodRisk/*`
+- **Regulatory Registration:** https://www.gov.uk/government/organisations/environment-agency
+
+#### HM Land Registry
+
+- **Slug:** `hmlr`
+- **DID:** `did:web:credentials.landregistry.gov.uk`
+- **Trust Level:** 🏛️ Root Issuer
+- **Status:** 🔵 Planned
+- **Authorised Paths:**
+  - `Title:/*`
+- **Regulatory Registration:** https://www.gov.uk/government/organisations/land-registry
 
 ## User Account Providers
 
-| Slug | Name | DID | Status |
-|------|------|-----|--------|
-| moverly | Moverly | `did:web:auth.moverly.com` | active |
+| Name | DID | Status | Valid From | Managed Organisations |
+|------|-----|--------|------------|-----------------------|
+| **Moverly** | `did:web:auth.moverly.com` | 🟢 Active | 2026-04-01T00:00:00Z | Verifies organisation identity via Companies House lookup and director authentication |
 
 ---
 
-*Last updated from registry.json v0.1.0*
+*Generated by `scripts/generate-registry-md.mjs`*

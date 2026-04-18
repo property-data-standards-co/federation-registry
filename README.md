@@ -1,57 +1,106 @@
 # PDTF Federation Registry
 
-**Trust Anchor for the Property Data Trust Framework (PDTF) OpenID Federation.**
+The Federation Registry is the seed data from which [OpenID Federation](https://openid.net/specs/openid-federation-1_0.html) Entity Statements, Trust Marks, and Entity Configurations are generated for the [Property Data Trust Framework (PDTF) 2.0](https://github.com/property-data-standards-co) ecosystem.
 
-This repository is the authoritative source for PDTF trust decisions. It maps issuers (data adapters, root authorities, and user account providers) to the PDTF entity paths they are authorised to issue credentials for.
+It defines **who** is authorised to issue **which** property credentials, expressed as OpenID Federation trust marks with PDTF-specific delegation claims.
 
 ## How It Works
 
 ```
-registry.json  →  CI generates signed JWTs  →  deployed to registry.propdata.org.uk
-(human-edited)     (Entity Statements,           (GitHub Pages)
-                    Trust Marks)
+registry.json (seed data)
+    │
+    ├── node scripts/generate-entity-statements.mjs
+    │       │
+    │       ├── dist/propdata.org.uk/.well-known/openid-federation  (trust anchor)
+    │       ├── dist/propdata.org.uk/federation/fetch?sub=...       (subordinate statements)
+    │       ├── dist/trust-marks/...                                (trust marks per entity)
+    │       └── dist/entity-configs/...                             (leaf entity configurations)
+    │
+    └── node scripts/generate-federation-md.mjs
+            │
+            └── FEDERATION.md  (human-readable view)
 ```
 
-1. **`registry.json`** — Human-edited registry of all trusted issuers, their DIDs, authorised paths, and trust levels.
-2. **CI pipeline** — On push to `main`, GitHub Actions runs `scripts/generate-federation.mjs` which signs federation artifacts using the Trust Anchor's Ed25519 key.
-3. **GitHub Pages** — The signed artifacts are deployed to `https://registry.propdata.org.uk`.
+`registry.json` is the single authoritative source. The build scripts generate unsigned JSON reference artifacts showing the structure of the OpenID Federation metadata. In production, these would be signed JWTs served from live HTTPS endpoints.
 
-## Published Artifacts
+## Trust Anchor
 
-| Path | Description |
-|------|-------------|
-| `/.well-known/openid-federation` | Trust Anchor Entity Configuration (self-signed JWT) |
-| `/entities/{slug}.jwt` | Subordinate Entity Statement for each issuer |
-| `/trust-marks/{slug}.jwt` | Property Data Provider Trust Mark for each issuer |
+The federation trust anchor is **Property Data Standards** (`https://propdata.org.uk`). It:
 
-All JWTs are signed with **EdDSA (Ed25519)** using compact serialisation.
+- Issues subordinate entity statements for each entity in the federation
+- Issues trust marks certifying what each entity is authorised to do
+- Publishes its entity configuration at `/.well-known/openid-federation`
 
-## Adding or Updating an Issuer
+## Trust Marks
 
-1. Edit `registry.json` — add or modify an issuer entry
-2. Open a PR — CI validates the schema, checks for duplicates
-3. Merge — CI generates and deploys new signed artifacts
+Trust marks are the PDTF-specific mechanism for expressing what an entity is authorised to do. Each is a signed assertion from the trust anchor:
 
-## Trust Architecture
+| Trust Mark | Meaning |
+|------------|---------|
+| `title-data-provider` | Authorised to issue TitleCredentials |
+| `search-provider` | Authorised to issue property search credentials |
+| `regulated-conveyancer` | SRA/CLC regulated conveyancing firm |
+| `energy-data-provider` | Authorised to issue EPC/energy credentials |
+| `environmental-data-provider` | Authorised to issue environmental risk credentials |
+| `account-provider` | Authorised to issue user DIDs on behalf of persons |
 
-- **Trust Anchor**: `https://registry.propdata.org.uk` (this registry)
-- **Signing key**: Ed25519, kid `trust-anchor-1`
-- **Entity Statements**: Bind issuer DIDs to their authorised PDTF paths
-- **Trust Marks**: Portable proof that an issuer is authorised by the Trust Anchor
+Each trust mark carries a `delegation` extension with `authorised_paths` — the specific PDTF entity:path combinations the holder can credential.
 
-See [REGISTRY.md](REGISTRY.md) for the current registry contents.
+## Viewing the Registry
 
-## Local Development
+See **[FEDERATION.md](./FEDERATION.md)** for a human-readable view, auto-generated from `registry.json`.
 
-```bash
-npm install
-TRUST_ANCHOR_PRIVATE_JWK='{"kty":"OKP","crv":"Ed25519","d":"...","x":"..."}' \
-  node scripts/generate-federation.mjs
-```
+## Adding an Entity
 
-Artifacts are written to `dist/`.
+1. Fork this repository
+2. Edit `registry.json` — add your entry under `issuers` or `userAccountProviders`
+3. Required fields:
+   - `slug` — unique identifier (must match the object key)
+   - `entity_identifier` — your HTTPS entity identifier for OpenID Federation
+   - `did` — your Decentralised Identifier (`did:web:...`)
+   - `trust_marks` — which trust marks you're applying for
+   - `authorisedPaths` — PDTF entity:path patterns you'll credential
+   - `trustLevel` — `rootIssuer` (primary source) or `trustedProxy` (intermediary)
+4. Validate locally:
+   ```bash
+   npx ajv-cli validate -s schema/registry.schema.json -d registry.json --spec=draft2020 -c ajv-formats
+   node scripts/generate-entity-statements.mjs
+   ```
+5. Open a Pull Request with:
+   - Your organisation name, DID, and entity identifier
+   - The PDTF paths you intend to credential
+   - Evidence of authorisation (for `trustedProxy` entries, confirmation from the root issuer)
+   - Regulatory registration URL (for `rootIssuer` entries)
 
-## Related
+## Review Process
 
-- [PDTF Specification](https://propdata.org.uk)
-- [OpenID Federation](https://openid.net/specs/openid-federation-1_0.html)
+All registry changes require:
+
+- **Schema validation** — CI validates against `schema/registry.schema.json`
+- **Uniqueness checks** — no duplicate DIDs, slugs, or entity identifiers
+- **Build check** — entity statement generation must succeed
+- **Maintainer review** — at least one PDTF maintainer must approve
+- **For `rootIssuer` entries** — verification of the organisation's regulatory status
+- **For `trustedProxy` entries** — confirmation of the proxy relationship with the root issuer
+
+## Governance Model
+
+### Phase 1 (current)
+
+The trust anchor is operated by Moverly/propdata.org.uk. Federation metadata is generated from this registry file. Moverly is the sole account provider for user DIDs. Existing data collectors become OID4VCI credential issuers (adapters) as leaf entities in the federation.
+
+### Phase 2+
+
+A property sector governance body operates the trust anchor. Multiple organisations run adapters with their own entity configurations. SRA/CLC issue `regulated-conveyancer` trust marks directly. Multiple account providers for user DIDs.
+
+## Related Specifications
+
+- [PDTF 2.0 Architecture Overview](https://github.com/property-data-standards-co) — the specification this registry implements
+- [OpenID Federation (RFC 9396)](https://openid.net/specs/openid-federation-1_0.html) — the trust infrastructure standard
+- [OpenID for Verifiable Credential Issuance (OID4VCI)](https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html) — credential issuance protocol
+- [W3C Verifiable Credentials Data Model v2.0](https://www.w3.org/TR/vc-data-model-2.0/) — credential format
+- [W3C Decentralised Identifiers (DIDs)](https://www.w3.org/TR/did-core/) — entity identifiers
+
+## License
+
+[MIT](./LICENSE) -- Copyright (c) 2026 Ed Molyneux / Moverly

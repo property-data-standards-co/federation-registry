@@ -52,7 +52,8 @@ if (!privateJwkRaw) {
 const privateJwk = JSON.parse(privateJwkRaw);
 const privateKeyBytes = Buffer.from(privateJwk.d, 'base64url');
 
-const ANCHOR = 'https://registry.propdata.org.uk';
+const ANCHOR = registry.trustAnchor?.entity_identifier || 'https://propdata.org.uk';
+const REGISTRY_URL = 'https://registry.propdata.org.uk';
 const now = Math.floor(Date.now() / 1000);
 const oneYear = 365 * 24 * 60 * 60;
 
@@ -82,7 +83,7 @@ const allEntries = [
 // 1. Trust Anchor Entity Configuration
 // ---------------------------------------------------------------------------
 
-const subordinates = allEntries.map(e => `${ANCHOR}/entities/${e.slug}`);
+const subordinates = allEntries.map(e => `${REGISTRY_URL}/entities/${e.slug}`);
 
 const entityConfig = signJwt(
   { alg: 'EdDSA', kid: 'trust-anchor-1', typ: 'entity-statement+jwt' },
@@ -100,6 +101,11 @@ const entityConfig = signJwt(
       },
     },
     subordinates,
+    ...(registry.trustAnchor?.trust_mark_definitions && {
+      trust_mark_issuers: Object.fromEntries(
+        Object.keys(registry.trustAnchor.trust_mark_definitions).map(id => [id, [ANCHOR]])
+      ),
+    }),
   },
   privateKeyBytes,
 );
@@ -116,7 +122,7 @@ for (const entry of allEntries) {
     { alg: 'EdDSA', kid: 'trust-anchor-1', typ: 'entity-statement+jwt' },
     {
       iss: ANCHOR,
-      sub: entry.did,
+      sub: entry.entity_identifier || entry.did,
       iat: now,
       exp: now + oneYear,
       metadata: {
@@ -152,10 +158,9 @@ for (const entry of allEntries) {
     { alg: 'EdDSA', kid: 'trust-anchor-1', typ: 'trust-mark+jwt' },
     {
       iss: ANCHOR,
-      sub: entry.did,
+      sub: entry.entity_identifier || entry.did,
       iat: now,
-      id: `${ANCHOR}/trust-marks/property-data-provider`,
-      trust_mark_id: 'property-data-provider',
+      id: (entry.trust_marks && entry.trust_marks[0]) || `${REGISTRY_URL}/trust-marks/property-data-provider`,
       ref: entry.slug,
       ...(Object.keys(delegation).length > 0 && { delegation }),
     },

@@ -1,10 +1,36 @@
 {
   "$schema": "./schema/registry.schema.json",
-  "version": "0.1.0",
-  "lastUpdated": "2026-04-02T00:00:00Z",
+  "version": "0.2.0",
+  "lastUpdated": "2026-04-18T00:00:00Z",
+  "trustAnchor": {
+    "entity_identifier": "https://propdata.org.uk",
+    "name": "Property Data Standards",
+    "trust_mark_issuer": true,
+    "trust_mark_definitions": {
+      "https://propdata.org.uk/trust-marks/title-data-provider": {
+        "description": "Authorised to issue TitleCredentials"
+      },
+      "https://propdata.org.uk/trust-marks/search-provider": {
+        "description": "Authorised to issue property search credentials"
+      },
+      "https://propdata.org.uk/trust-marks/regulated-conveyancer": {
+        "description": "SRA/CLC regulated conveyancing firm"
+      },
+      "https://propdata.org.uk/trust-marks/energy-data-provider": {
+        "description": "Authorised to issue EPC/energy credentials"
+      },
+      "https://propdata.org.uk/trust-marks/environmental-data-provider": {
+        "description": "Authorised to issue environmental risk credentials"
+      },
+      "https://propdata.org.uk/trust-marks/account-provider": {
+        "description": "Authorised to issue user DIDs on behalf of persons"
+      }
+    }
+  },
   "issuers": {
     "moverly-epc": {
       "slug": "moverly-epc",
+      "entity_identifier": "https://adapters.propdata.org.uk/epc",
       "did": "did:web:adapters.propdata.org.uk:epc",
       "name": "Moverly EPC Adapter",
       "trustLevel": "trustedProxy",
@@ -13,10 +39,14 @@
       "authorisedPaths": [
         "Property:/energyEfficiency/*"
       ],
+      "trust_marks": [
+        "https://propdata.org.uk/trust-marks/energy-data-provider"
+      ],
       "validFrom": "2026-06-01T00:00:00Z"
     },
     "moverly-title": {
       "slug": "moverly-title",
+      "entity_identifier": "https://adapters.propdata.org.uk/title",
       "did": "did:web:adapters.propdata.org.uk:title",
       "name": "Moverly Title Register Adapter",
       "trustLevel": "trustedProxy",
@@ -27,10 +57,14 @@
         "Title:/planReference",
         "Title:/classOfTitle"
       ],
+      "trust_marks": [
+        "https://propdata.org.uk/trust-marks/title-data-provider"
+      ],
       "validFrom": "2026-06-01T00:00:00Z"
     },
     "moverly-searches": {
       "slug": "moverly-searches",
+      "entity_identifier": "https://adapters.propdata.org.uk/searches",
       "did": "did:web:adapters.propdata.org.uk:searches",
       "name": "Moverly Search Adapter",
       "trustLevel": "trustedProxy",
@@ -42,10 +76,15 @@
         "Property:/environmentalRisk/*",
         "Property:/miningRisk/*"
       ],
+      "trust_marks": [
+        "https://propdata.org.uk/trust-marks/search-provider",
+        "https://propdata.org.uk/trust-marks/environmental-data-provider"
+      ],
       "validFrom": "2026-06-01T00:00:00Z"
     },
     "environment-agency": {
       "slug": "environment-agency",
+      "entity_identifier": "https://credentials.environment-agency.gov.uk",
       "did": "did:web:credentials.environment-agency.gov.uk",
       "name": "Environment Agency",
       "trustLevel": "rootIssuer",
@@ -54,10 +93,15 @@
         "Property:/energyEfficiency/*",
         "Property:/floodRisk/*"
       ],
+      "trust_marks": [
+        "https://propdata.org.uk/trust-marks/energy-data-provider",
+        "https://propdata.org.uk/trust-marks/environmental-data-provider"
+      ],
       "regulatoryRegistration": "https://www.gov.uk/government/organisations/environment-agency"
     },
     "hmlr": {
       "slug": "hmlr",
+      "entity_identifier": "https://credentials.landregistry.gov.uk",
       "did": "did:web:credentials.landregistry.gov.uk",
       "name": "HM Land Registry",
       "trustLevel": "rootIssuer",
@@ -65,16 +109,23 @@
       "authorisedPaths": [
         "Title:/*"
       ],
+      "trust_marks": [
+        "https://propdata.org.uk/trust-marks/title-data-provider"
+      ],
       "regulatoryRegistration": "https://www.gov.uk/government/organisations/land-registry"
     }
   },
   "userAccountProviders": {
     "moverly": {
       "slug": "moverly",
+      "entity_identifier": "https://auth.moverly.com",
       "did": "did:web:auth.moverly.com",
       "name": "Moverly",
       "status": "active",
       "managedOrganisations": "Verifies organisation identity via Companies House lookup and director authentication",
+      "trust_marks": [
+        "https://propdata.org.uk/trust-marks/account-provider"
+      ],
       "validFrom": "2026-04-01T00:00:00Z"
     }
   }

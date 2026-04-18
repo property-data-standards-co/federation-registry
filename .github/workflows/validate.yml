@@ -34,7 +34,7 @@ jobs:
             for (const v of Object.values(reg.userAccountProviders || {})) dids.push(v.did);
             const dupes = dids.filter((d, i) => dids.indexOf(d) !== i);
             if (dupes.length) { console.error('Duplicate DIDs:', dupes); process.exit(1); }
-            console.log('✅ No duplicate DIDs (' + dids.length + ' checked)');
+            console.log('No duplicate DIDs (' + dids.length + ' checked)');
           "
 
       - name: Check for duplicate slugs
@@ -46,7 +46,19 @@ jobs:
             for (const v of Object.values(reg.userAccountProviders || {})) slugs.push(v.slug);
             const dupes = slugs.filter((s, i) => slugs.indexOf(s) !== i);
             if (dupes.length) { console.error('Duplicate slugs:', dupes); process.exit(1); }
-            console.log('✅ No duplicate slugs (' + slugs.length + ' checked)');
+            console.log('No duplicate slugs (' + slugs.length + ' checked)');
+          "
+
+      - name: Check for duplicate entity identifiers
+        run: |
+          node -e "
+            const reg = require('./registry.json');
+            const ids = [];
+            for (const v of Object.values(reg.issuers || {})) ids.push(v.entity_identifier);
+            for (const v of Object.values(reg.userAccountProviders || {})) ids.push(v.entity_identifier);
+            const dupes = ids.filter((d, i) => ids.indexOf(d) !== i);
+            if (dupes.length) { console.error('Duplicate entity_identifiers:', dupes); process.exit(1); }
+            console.log('No duplicate entity_identifiers (' + ids.length + ' checked)');
           "
 
       - name: Check slug-key consistency
@@ -61,17 +73,20 @@ jobs:
               if (k !== v.slug) errors.push('Provider key \"' + k + '\" != slug \"' + v.slug + '\"');
             }
             if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
-            console.log('✅ All keys match their slug fields');
+            console.log('All keys match their slug fields');
           "
 
-      - name: Generate REGISTRY.md
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: node scripts/generate-registry-md.mjs
+      - name: Generate entity statements (build check)
+        run: node scripts/generate-entity-statements.mjs
 
-      - name: Commit REGISTRY.md if changed
+      - name: Generate FEDERATION.md
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: node scripts/generate-federation-md.mjs
+
+      - name: Commit FEDERATION.md if changed
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add REGISTRY.md
-          git diff --cached --quiet || git commit -m "chore: auto-generate REGISTRY.md" && git push
+          git add FEDERATION.md
+          git diff --cached --quiet || git commit -m "chore: auto-generate FEDERATION.md" && git push
